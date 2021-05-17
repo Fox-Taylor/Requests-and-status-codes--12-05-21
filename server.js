@@ -1,8 +1,14 @@
+const basicAuth = require('express-basic-auth')
+const {check,validationResult} = require('express-validator')
+
+
 const express = require("express");
 const app = express();
 
 // our airports json
 const airports = require("./airports.json");
+
+const users = require("./users.json");
 
 // swagger components
 const swaggerJsdoc = require("swagger-jsdoc");
@@ -16,6 +22,12 @@ app.use(express.json());
 
 a = airports.length
 console.log(a)
+
+/*
+app.use(basicAuth({
+  users: { 'admin': 'supersecret' }
+}))
+*/
 
 //console.log(airports[0].name)
 /*
@@ -44,11 +56,20 @@ app.get("/airports", (req, res) => {
   console.log("airport list displayed")
 });
 
+
 //basic post
-app.post("/airports", (req,res) => {
+app.post("/airports", 
+check("name","name must be a string").isString().isLength({ min: 5 }),
+(req,res) => {
+  const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(500).json({ errors: errors.array() });
+        }
+
   res.send('Posted!')
   console.log("Basic Post")
 });
+
 
 // basic delete
 app.delete("/airports", (req,res) => {
@@ -71,7 +92,8 @@ app.get("/airports/:name", (req,res) => {
 
 
 //gets country of airport
-app.get("/airports/:name", (req,res) => {
+app.get("/airports/:name", 
+(req,res) => {
   console.log(req.params['name']+"   is a get request");
   for (i = 0; i< a; i++) {
 
@@ -95,8 +117,6 @@ app.get("/airports/:name", (req,res) => {
 app.put("/airports/:name",(req,res) => {
   console.log(req.params['name'+ " update/replace name id"]);
   res.send(req.params['name']);
-
-
 
 });
 
@@ -124,6 +144,45 @@ app.get("/airports/:name",(req,res) => {
 //delete
 //airport with id
 
+const bcrypt = require('bcrypt')
+bcrypt.hash('password101', 10).then(console.log)
+
+bcrypt.compare('password101', '$2b$10$AQXoVkfzAovJ9RHTtmd6N.Yegy3V9ALTlYDcCM76HxBqq044q6xLK').then(console.log)
+
+
+
+
+
+/*
+const { body, validationResult } = require('express-validator');
+
+username='Fox'
+password='ABC555'
+
+app.post(
+  '/users',
+  // username must be an email
+  body(username).isEmail(),
+  // password must be at least 5 chars long
+  body(password).isLength({ min: 5 }),
+  (req, res) => {
+    // Finds the validation errors in this request and wraps them in an object with handy functions
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    User.create({
+      username: req.body.username,
+      password: req.body.password,
+    }).then(users => res.json(users));
+  },
+);
+
+*/
+
+
+ 
 
 app.use(
   "/api-docs",
